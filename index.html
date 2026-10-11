@@ -36,11 +36,24 @@ h3{margin:4px 0 10px}
 .sw input{width:22px;height:22px;accent-color:var(--pri)}
 .small{font-size:13px;opacity:.75}
 .st.n{background:var(--card)}#tabs button{font-size:13px}
+.g{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px}.g button{padding:14px 10px;text-align:start}
 </style>
 </head>
 <body>
 
-<main id="v-m" class="view">
+<main id="v-h" class="view"><div id="h"></div></main>
+
+<main id="v-l" class="view" hidden>
+  <div class="card"><h3 data-k="l">استماع</h3>
+    <select id="ls" style="width:100%"></select>
+    <p><button class="on" onclick="playSurah(+$('#ls').value)">▶ تشغيل السورة كاملة</button></p>
+    <div class="small">القارئ</div><div id="lrc" class="row"></div></div>
+  <div class="card"><div id="ln" style="font-weight:600">اختر سورة واضغط تشغيل</div>
+    <div style="height:6px;background:var(--bd);border-radius:3px;margin-top:8px"><div id="lpb" style="height:6px;width:0;background:var(--pri);border-radius:3px"></div></div>
+    <p class="small">أزرار التحكم (التالي، التكرار، السرعة) في الشريط السفلي.</p></div>
+</main>
+
+<main id="v-m" class="view" hidden>
   <div class="row">
     <select id="sur" aria-label="السورة"></select>
     <select id="juz" aria-label="الجزء"></select>
@@ -75,9 +88,9 @@ h3{margin:4px 0 10px}
     <input id="adc" type="checkbox" onchange="st.ads=+this.checked;save()"></div>
 </main>
 
-<main id="v-a" class="view" hidden><div id="a"></div><p class="small" style="text-align:center">اضغط على الذكر لتعدّه. راجع النصوص والأعداد من مصدر موثوق (حصن المسلم) قبل الاعتماد عليها.</p></main>
+<main id="v-a" class="view" hidden><p><button onclick="tab('h')">→ الرئيسية</button></p><div id="a"></div><p class="small" style="text-align:center">اضغط على الذكر لتعدّه. راجع النصوص والأعداد من مصدر موثوق (حصن المسلم) قبل الاعتماد عليها.</p></main>
 
-<main id="v-q" class="view" hidden><div class="card" style="text-align:center">
+<main id="v-q" class="view" hidden><p><button onclick="tab('h')">→ الرئيسية</button></p><div class="card" style="text-align:center">
   <div id="qs" class="st n">فعّل الموقع لحساب القبلة</div>
   <svg viewBox="0 0 240 240" width="260" style="max-width:100%" role="img" aria-label="بوصلة القبلة"><circle cx="120" cy="120" r="112" fill="var(--card)" stroke="var(--bd)"/><g id="dial"></g><polygon points="120,4 111,24 129,24" fill="var(--pri)"/><circle cx="120" cy="120" r="5" fill="var(--pri)"/></svg>
   <div class="row" style="justify-content:center"><span>اتجاه الجهاز: <b id="qh">٠°</b></span><span>القبلة: <b id="qb">—</b></span></div>
@@ -99,10 +112,10 @@ h3{margin:4px 0 10px}
 </div>
 
 <nav id="tabs">
+  <button id="tb-h" onclick="tab('h')" data-k="h">الرئيسية</button>
   <button id="tb-m" onclick="tab('m')" data-k="m">المصحف</button>
-  <button id="tb-t" onclick="tab('t')" data-k="t">اختبار الحفظ</button>
-  <button id="tb-a" onclick="tab('a')" data-k="a">الأذكار</button>
-  <button id="tb-q" onclick="tab('q')" data-k="q">البوصلة</button>
+  <button id="tb-l" onclick="tab('l')" data-k="l">استماع</button>
+  <button id="tb-t" onclick="tab('t')" data-k="ht">الحفظ</button>
   <button id="tb-s" onclick="tab('s')" data-k="s">الإعدادات</button>
 </nav>
 
@@ -113,9 +126,9 @@ const esc=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'
 const JUZ=[1,22,42,62,82,102,122,142,162,182,202,222,242,262,282,302,322,342,362,382,402,422,442,462,482,502,522,542,562,582];
 // Verify ids at https://api.alquran.cloud/v1/edition?format=audio&type=versebyverse
 const REC=[['ar.alafasy','مشاري العفاسي'],['ar.abdulbasitmurattal','عبد الباسط عبد الصمد'],['ar.mahermuaiqly','ماهر المعيقلي'],['ar.saoodshuraym','سعود الشريم'],['ar.husary','محمود خليل الحصري'],['ar.abdurrahmaansudais','عبد الرحمن السديس']];
-const D={ar:{a:'الأذكار',q:'البوصلة',m:'المصحف',t:'اختبار الحفظ',s:'الإعدادات',lang:'اللغة',font:'حجم الخط',bg:'التشغيل في الخلفية',bgd:'يستمر الصوت أثناء فتح تبويبات أو تطبيقات أخرى',ads:'حظر الإعلانات',adsd:'بانر، منبثقة، فيديو، ملء الشاشة، تتبّع، ومحتوى مموَّل'},
- en:{a:'Adhkar',q:'Compass',m:'Mushaf',t:'Memorize',s:'Settings',lang:'Language',font:'Font size',bg:'Background playback',bgd:'Audio keeps playing while you use other tabs or apps',ads:'Block ads',adsd:'Banner, pop-up, video, full-screen, tracking and sponsored'}};
-const st=Object.assign({page:1,theme:'light',lang:'ar',fs:28,ed:'ar.alafasy',cnt:1,inf:0,sp:1,bg:1,ads:1,goal:20,day:'',pg:[],streak:0,lg:''},JSON.parse(localStorage.quran||'{}'));
+const D={ar:{h:'الرئيسية',l:'استماع',ht:'الحفظ',a:'الأذكار',q:'البوصلة',m:'المصحف',t:'اختبار الحفظ',s:'الإعدادات',lang:'اللغة',font:'حجم الخط',bg:'التشغيل في الخلفية',bgd:'يستمر الصوت أثناء فتح تبويبات أو تطبيقات أخرى',ads:'حظر الإعلانات',adsd:'بانر، منبثقة، فيديو، ملء الشاشة، تتبّع، ومحتوى مموَّل'},
+ en:{h:'Home',l:'Listen',ht:'Memorize',a:'Adhkar',q:'Compass',m:'Mushaf',t:'Memorize',s:'Settings',lang:'Language',font:'Font size',bg:'Background playback',bgd:'Audio keeps playing while you use other tabs or apps',ads:'Block ads',adsd:'Banner, pop-up, video, full-screen, tracking and sponsored'}};
+const st=Object.assign({page:1,theme:'light',lang:'ar',fs:28,ed:'ar.alafasy',cnt:1,inf:0,sp:1,bg:1,ads:1,goal:20,day:'',pg:[],streak:0,lg:'',loc:null,sn:''},JSON.parse(localStorage.quran||'{}'));
 const save=()=>localStorage.quran=JSON.stringify(st);
 async function get(p){const r=await fetch(API+p);if(!r.ok)throw new Error(r.status);return (await r.json()).data}
 
@@ -142,7 +155,7 @@ async function show(n){
     for(const a of A){const s=a.surah.number;
       if(a.numberInSurah==1){h+=`<div class="sh">${a.surah.name}</div>`;if(s!=1&&s!=9)h+='<div class="bs">بِسْمِ ٱللَّهِ ٱلرَّحْمَٰنِ ٱلرَّحِيمِ</div>'}
       h+=`<span class="ay" data-s="${s}" data-i="${a.numberInSurah}">${disp(a.text,a.numberInSurah,s)} ﴿${ar(a.numberInSurah)}﴾</span> `}
-    el.innerHTML=h;mark();stat(n)}
+    st.sn=A[0].surah.name;el.innerHTML=h;mark();stat(n)}
   catch(e){el.innerHTML='<p>تعذّر التحميل، تحقق من الإنترنت <button onclick="show(st.page)">إعادة المحاولة</button></p>'}}
 $('#page').onclick=e=>{const s=e.target.closest('.ay');if(s)play(st.page,+s.dataset.s,+s.dataset.i)};
 let x0=0;$('#page').ontouchstart=e=>x0=e.touches[0].clientX;
@@ -152,10 +165,10 @@ $('#sur').onchange=async e=>{const n=e.target.value;e.target.value='';if(n){try{
 $('#juz').onchange=e=>{const n=+e.target.value;e.target.value='';if(n)show(JUZ[n-1])};
 
 /* ---------- Player: reciter, repeat x1..4, forever, speed ---------- */
-const au=new Audio();let Q=[],qi=0,rep=0,qpage=0;
+const au=new Audio();let Q=[],qi=0,rep=0,qpage=0,QS=0;
 async function play(page,s,i){
   try{Q=await pageAyahs(page,st.ed)}catch{$('#lb').textContent='تعذّر تحميل الصوت (تحقق من القارئ والإنترنت)';return}
-  qpage=page;qi=Math.max(0,Q.findIndex(a=>a.surah.number==s&&a.numberInSurah==i));rep=0;start()}
+  QS=0;qpage=page;qi=Math.max(0,Q.findIndex(a=>a.surah.number==s&&a.numberInSurah==i));rep=0;start()}
 function start(){const a=Q[qi];au.src=a.audio;au.defaultPlaybackRate=au.playbackRate=st.sp;au.play().catch(()=>{});
   if(a.page!=st.page)show(a.page);
   if('mediaSession' in navigator)navigator.mediaSession.metadata=new MediaMetadata({title:`${a.surah.name} · ${a.numberInSurah}`,artist:(REC.find(r=>r[0]==st.ed)||[])[1]||'',album:'القرآن الكريم'});
@@ -164,22 +177,22 @@ au.onended=async()=>{
   if(st.inf){au.currentTime=0;au.play();return}
   if(++rep<st.cnt){au.currentTime=0;au.play();return}
   rep=0;if(++qi<Q.length)return start();
-  if(qpage<604)await play(qpage+1);else ui()};
+  if(qpage>0&&qpage<604)await play(qpage+1);else{qi=0;au.pause();ui();mark()}};
 au.onplay=au.onpause=ui;
 function pp(){if(!Q.length)return play(st.page);au.paused?au.play():au.pause()}
-function step(d){if(!Q.length)return;rep=0;qi=Math.max(0,qi+d);if(qi>=Q.length){if(qpage<604)play(qpage+1);return}start()}
+function step(d){if(!Q.length)return;rep=0;qi=Math.max(0,qi+d);if(qi>=Q.length){if(qpage>0&&qpage<604)play(qpage+1);return}start()}
 function tinf(){st.inf=+!st.inf;save();ui()}
 function tcnt(){st.cnt=st.cnt%4+1;st.inf=0;rep=0;save();ui()}
 function ui(){const a=Q[qi];
   $('#pp').textContent=au.paused?'▶':'⏸';
   $('#inf').className=st.inf?'on':'';$('#cnt').textContent='×'+st.cnt;$('#cnt').className=st.cnt>1&&!st.inf?'on':'';
-  $('#lb').textContent=a?`${a.surah.name} · آية ${ar(a.numberInSurah)}${st.inf?' · تكرار دائم':st.cnt>1?` · المرة ${ar(rep+1)} من ${ar(st.cnt)}`:''}`:'اضغط ▶ لتشغيل هذه الصفحة أو اضغط على أي آية'}
+  $('#lb').textContent=a?`${a.surah.name} · آية ${ar(a.numberInSurah)}${st.inf?' · تكرار دائم':st.cnt>1?` · المرة ${ar(rep+1)} من ${ar(st.cnt)}`:''}`:'اضغط ▶ لتشغيل هذه الصفحة أو اضغط على أي آية';const b=$('#lpb');if(b)b.style.width=(Q.length?(qi+1)/Q.length*100:0)+'%';const ln=$('#ln');if(ln)ln.textContent=a?$('#lb').textContent:'اختر سورة واضغط تشغيل'}
 function mark(){document.querySelectorAll('.cur').forEach(e=>e.classList.remove('cur'));const a=Q[qi];
   if(a&&a.page==st.page){const e=document.querySelector(`.ay[data-s="${a.surah.number}"][data-i="${a.numberInSurah}"]`);if(e)e.classList.add('cur')}}
 $('#sp').innerHTML=[0.5,0.75,1,1.25,1.5,2].map(v=>`<option value="${v}">${v}x</option>`).join('');
 $('#sp').onchange=e=>{st.sp=+e.target.value;au.playbackRate=au.defaultPlaybackRate=st.sp;save()};
 $('#rc').innerHTML=REC.map(r=>`<option value="${r[0]}">${r[1]}</option>`).join('');
-$('#rc').onchange=e=>{st.ed=e.target.value;save();if(Q.length){const a=Q[qi],was=!au.paused;Q=[];play(qpage,a.surah.number,a.numberInSurah).then(()=>{if(!was)au.pause()})}};
+$('#rc').onchange=e=>setRec(e.target.value);
 if('mediaSession' in navigator){const m=navigator.mediaSession;m.setActionHandler('play',()=>au.play());m.setActionHandler('pause',()=>au.pause());m.setActionHandler('nexttrack',()=>step(1));m.setActionHandler('previoustrack',()=>step(-1))}
 document.addEventListener('visibilitychange',()=>{if(document.hidden&&!st.bg)au.pause()});
 
@@ -281,20 +294,57 @@ function qstart(){
     QB=(Math.atan2(Math.sin(dl)*Math.cos(f2),Math.cos(f1)*Math.sin(f2)-Math.sin(f1)*Math.cos(f2)*Math.cos(dl))/r+360)%360;
     $('#qb').textContent=ar(Math.round(QB))+'°';qdraw();qhead(QH)},()=>{$('#qs').textContent='تعذّر الحصول على الموقع، اسمح به من إعدادات المتصفح'})}
 
+/* ---------- Home ---------- */
+let VOD='';
+function rh(){const pc=Math.min(100,Math.round(st.pg.length/st.goal*100));
+  $('#h').innerHTML=`<p class="small" style="margin:0 0 8px">السلام عليكم</p>
+  <div class="card" style="display:flex;gap:14px;align-items:center;background:var(--pc);color:var(--pri)">
+    <div style="width:72px;height:72px;border-radius:50%;background:conic-gradient(var(--pri) ${pc*3.6}deg,var(--bg) 0);display:grid;place-items:center;flex-shrink:0"><div style="width:54px;height:54px;border-radius:50%;background:var(--pc);display:grid;place-items:center;font-weight:600">${ar(pc)}٪</div></div>
+    <div><div class="small">وردك اليوم</div><b>${ar(st.pg.length)} من ${ar(st.goal)} صفحة</b><div class="small">${ar(st.streak)} يوم متتالي</div></div></div>
+  <div class="card" onclick="tab('m');show(st.page)" style="cursor:pointer;display:flex;justify-content:space-between;align-items:center">
+    <div><div class="small">تابع القراءة</div><div style="font-size:22px;font-family:serif">${st.sn||'المصحف'}</div><div class="small">صفحة ${ar(st.page)}</div></div><span style="font-size:24px">←</span></div>
+  <div class="g"><button onclick="tab('m')">📖 المصحف</button><button onclick="tab('l')">🎧 الاستماع</button><button onclick="tab('t')">🧠 الحفظ</button><button onclick="tab('m');$('#sb').hidden=false">🔍 البحث</button><button class="on" onclick="tab('a')">🌅 الأذكار</button><button class="on" onclick="tab('q')">🧭 البوصلة</button></div>
+  <div class="card"><div class="small">آية اليوم</div><div id="vod" style="text-align:center;font-size:22px;font-family:serif;line-height:2">…</div></div>
+  <div class="card"><div class="small" style="margin-bottom:6px">مواقيت الصلاة</div><div id="pt"></div></div>`;
+  vod();ptm()}
+async function vod(){const el=$('#vod');if(VOD){el.innerHTML=VOD;return}
+  const d=new Date(),n=(Math.floor((d-new Date(d.getFullYear(),0,0))/864e5)*37+11)%6236+1;
+  try{const a=await get(`/ayah/${n}/quran-uthmani`);VOD=`${disp(a.text,a.numberInSurah,a.surah.number)}<div class="small">${a.surah.name} · ${ar(a.numberInSurah)}</div>`;el.innerHTML=VOD}
+  catch{el.textContent='تعذّر التحميل'}}
+async function ptm(){const el=$('#pt');
+  if(!st.loc){el.innerHTML='<button onclick="ploc()">📍 تفعيل الموقع</button>';return}
+  try{const t=(await (await fetch(`https://api.aladhan.com/v1/timings?latitude=${st.loc[0]}&longitude=${st.loc[1]}&method=5`)).json()).data.timings;
+    const N=[['الفجر','Fajr'],['الظهر','Dhuhr'],['العصر','Asr'],['المغرب','Maghrib'],['العشاء','Isha']],now=new Date(),mm=now.getHours()*60+now.getMinutes();
+    const mins=k=>{const[h,m]=t[k].split(':');return +h*60+ +m},nx=N.findIndex(x=>mins(x[1])>mm);
+    el.innerHTML=`<div class="row" style="justify-content:space-between;margin:0">${N.map((x,i)=>`<div style="text-align:center;padding:4px 8px;border-radius:8px;${i==nx?'background:var(--pc);color:var(--pri)':''}"><div class="small">${x[0]}</div><b>${ar(t[x[1]].slice(0,5))}</b></div>`).join('')}</div>`}
+  catch{el.textContent='تعذّر تحميل المواقيت'}}
+function ploc(){if(!navigator.geolocation){$('#pt').textContent='المتصفح لا يدعم تحديد الموقع';return}
+  navigator.geolocation.getCurrentPosition(p=>{st.loc=[+p.coords.latitude.toFixed(3),+p.coords.longitude.toFixed(3)];save();ptm()},()=>{$('#pt').textContent='تعذّر الحصول على الموقع، اسمح به من إعدادات المتصفح'})}
+
+/* ---------- Listen: a whole surah, reciter chips ---------- */
+async function playSurah(n,i=1){
+  try{const d=await get(`/surah/${n}/${st.ed}`);Q=d.ayahs.map(a=>({...a,surah:{number:d.number,name:d.name}}));QS=n;qpage=0;qi=Math.max(0,i-1);rep=0;start()}
+  catch{$('#lb').textContent='تعذّر تحميل الصوت (تحقق من القارئ والإنترنت)'}}
+function rl(){$('#lrc').innerHTML=REC.map(r=>`<button class="${r[0]==st.ed?'on':''}" onclick="setRec('${r[0]}')">${r[1]}</button>`).join('')}
+function setRec(v){st.ed=v;save();$('#rc').value=v;rl();
+  if(Q.length&&Q[qi]){const a=Q[qi],was=!au.paused,s=QS;Q=[];(s?playSurah(s,a.numberInSurah):play(qpage,a.surah.number,a.numberInSurah)).then(()=>{if(!was)au.pause()})}}
+
 /* ---------- Settings, tabs, init ---------- */
 function theme(m){st.theme=m;save();document.documentElement.dataset.t=m;['light','dark'].forEach(x=>$('#th-'+x).className=x==m?'on':'')}
 function fs(d){st.fs=Math.min(48,Math.max(18,st.fs+d));save();document.documentElement.style.setProperty('--fs',st.fs+'px')}
 function apply(){document.querySelectorAll('[data-k]').forEach(e=>e.textContent=D[st.lang][e.dataset.k]);
   document.documentElement.lang=st.lang;document.documentElement.dir=st.lang=='ar'?'rtl':'ltr';$('#lg').value=st.lang}
-function tab(n){['m','t','a','q','s'].forEach(x=>{$('#v-'+x).hidden=x!=n;$('#tb-'+x).className=x==n?'on':''});if(n=='t')rt();if(n=='a')ra();if(n=='q'){qdraw();qhead(QH)}}
+function tab(n){['h','m','l','t','a','q','s'].forEach(x=>$('#v-'+x).hidden=x!=n);
+  const on={a:'h',q:'h'}[n]||n;['h','m','l','t','s'].forEach(x=>$('#tb-'+x).className=x==on?'on':'');
+  if(n=='h')rh();if(n=='t')rt();if(n=='a')ra();if(n=='q'){qdraw();qhead(QH)}}
 document.documentElement.style.setProperty('--fs',st.fs+'px');
-theme(st.theme);apply();tab('m');
+theme(st.theme);apply();rl();tab('h');
 $('#sp').value=st.sp;$('#rc').value=st.ed;$('#bgc').checked=!!st.bg;$('#adc').checked=!!st.ads;
 ui();show(st.page);
 get('/surah').then(d=>{SL=d;
   $('#sur').innerHTML='<option value="">السورة</option>'+d.map(s=>`<option value="${s.number}">${ar(s.number)}. ${s.name}</option>`).join('');
   $('#juz').innerHTML='<option value="">الجزء</option>'+JUZ.map((_,i)=>`<option value="${i+1}">الجزء ${ar(i+1)}</option>`).join('');
-  setN();rt()}).catch(()=>{$('#sur').innerHTML='<option value="">السورة</option>'});
+  setN();rt();$('#ls').innerHTML=d.map(s=>`<option value="${s.number}">${ar(s.number)}. ${s.name}</option>`).join('')}).catch(()=>{$('#sur').innerHTML='<option value="">السورة</option>'});
 $('#juz').innerHTML='<option value="">الجزء</option>'+JUZ.map((_,i)=>`<option value="${i+1}">الجزء ${ar(i+1)}</option>`).join('');
 </script>
 </body>
